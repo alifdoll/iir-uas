@@ -42,7 +42,7 @@
     <header class="navbar navbar-fixed-top">
         <div class="nav-collapse collapse pull-right">
             <ul class="nav">
-                <li class="active"><a href="index.php">Crawling Data</a></li>
+                <li class="active"><a href="index2.php">Crawling Data</a></li>
             </ul>
         </div>
     </header>
@@ -53,10 +53,11 @@
         <div class="container">
             <div class="center gap">
                 <h3>Welcome to Scientific Journals Search Engine</h3>
-                <form method="GET" action="index.php">
+                <form method="GET" action="index2.php">
                     <p class="lead">Input Keyword <input type="text" name="keyword" value="<?php echo (isset($_GET["keyword"])) ? $_GET["keyword"] : "";  ?>"> <input type="submit">
                         <!-- <br> -->
                     </p>
+                    <input type="hidden" id="data" name="data" value="0">
                     <input type="radio" id="jaccard" name="method" value="jaccard" checked="true">
                     <label for="html">Euclidean</label>
                     <input type="radio" id="manhattan" name="method" value="manhattan">
@@ -99,7 +100,9 @@
                     $keyword = str_replace(' ', '+', $_GET["keyword"]);
                 }
 
-                $url = "https://scholar.google.com/scholar?q=$keyword&hl=en&as_sdt=0,5&as_rr=1";
+                $start = $_GET['data'];
+                // echo $start;
+                $url = "https://scholar.google.com/scholar?start=$start&q=$keyword&hl=en&as_sdt=0,5&as_rr=1";
                 // $url = "https://www.sciencedirect.com/science/article/abs/pii/S1367578807000077";
                 $html = file_get_html($url);
                 $news = [];
@@ -235,11 +238,15 @@
 
     <nav aria-label="Page navigation example">
         <ul class="pagination">
-            <li class="page-item"><a class="page-link" href="#">Previous</a></li>
-            <li class="page-item"><a class="page-link" href="#">1</a></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+        <?php if ($start >= 10 && $start >0) : ?>
+            <li class="page-item"><a class="page-link" href="?keyword=pdf&data=<?= $start - 10?>">Previous</a></li>
+        <?php endif; ?>
+            <li class="page-item"><a class="page-link" href="?keyword=pdf&data=10">1</a></li>
+            <li class="page-item"><a class="page-link" href="?keyword=pdf&data=20">2</a></li>
+            <li class="page-item"><a class="page-link" href="?keyword=pdf&data=30">3</a></li>
+        <?php if ($start < 30 && $start >=0) : ?>
+            <li class="page-item"><a class="page-link" href="?keyword=pdf&data=<?= $start + 10?>">Next</a></li>
+        <?php endif; ?>
         </ul>
     </nav>
     <!-- <table class="table table-dark">
