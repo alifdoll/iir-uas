@@ -99,99 +99,96 @@
                     $keyword = str_replace(' ', '+', $_GET["keyword"]);
                 }
 
-                // $url = "https://scholar.google.com/scholar?q=$keyword&hl=en&as_sdt=0,5&as_rr=1";
-                // // $url = "https://www.sciencedirect.com/science/article/abs/pii/S1367578807000077";
-                // $html = file_get_html($url);
-                // $news = [];
+                $url = "https://scholar.google.com/scholar?q=$keyword&hl=en&as_sdt=0,5&as_rr=1";
+                // $url = "https://www.sciencedirect.com/science/article/abs/pii/S1367578807000077";
+                $html = file_get_html($url);
+                $news = [];
 
-                // function str_contains(string $haystack, string $needle): bool
-                // {
-                //     return '' === $needle || false !== strpos($haystack, $needle);
-                // }
-
-
-                // foreach ($html->find('div[class="gs_ri"]') as $index => $berita) {
+                function str_contains(string $haystack, string $needle): bool
+                {
+                    return '' === $needle || false !== strpos($haystack, $needle);
+                }
 
 
-                //     $title = $berita->find('a', 0)->innertext;
-                //     $link = $berita->find('a', 0)->href;
-                //     $cite = $berita->find('div[class="gs_fl"]', 0);
-                //     $cited = explode(" ",  $cite->find('a', 2)->innertext)[2];
-                //     $authors = "tes";
-                //     // $authors = explode(" ",  $cite->find('a', 2)->innertext)[2];
-                //     // $abstract = explode(" ",  $cite->find('a', 2)->innertext)[2];
+                foreach ($html->find('div[class="gs_ri"]') as $index => $berita) {
+
+
+                    $title = $berita->find('a', 0)->innertext;
+                    $link = $berita->find('a', 0)->href;
+                    $cite = $berita->find('div[class="gs_fl"]', 0);
+                    $cited = explode(" ",  $cite->find('a', 2)->innertext)[2];
+                    $authors = "tes";
+                    // $authors = explode(" ",  $cite->find('a', 2)->innertext)[2];
+                    // $abstract = explode(" ",  $cite->find('a', 2)->innertext)[2];
 
 
 
-                //     $cut = explode("/", $link);
-                //     // var_dump($cut[2]);
-                //     if(str_contains($link, 'pdf'))
-                //     {
-                //         $abstract = "Tidak bisa crawl file pdf";
-                //     }
-                //     else {
+                    $cut = explode("/", $link);
+                    // var_dump($cut[2]);
+                    if (str_contains($link, 'pdf')) {
+                        $abstract = "Tidak bisa crawl file pdf";
+                    } else {
 
-                //         if ($cut[2] == "link.springer.com") {
+                        if ($cut[2] == "link.springer.com") {
 
-                //             $opts = array(
-                //                 'http'=>array(
-                //                 'method'=>"GET",
-                //                 'header'=>"User-Agent: lashaparesha api script\r\n"
-                //                 ));
+                            $opts = array(
+                                'http' => array(
+                                    'method' => "GET",
+                                    'header' => "User-Agent: lashaparesha api script\r\n"
+                                )
+                            );
 
-                //                 $context = stream_context_create($opts);
+                            $context = stream_context_create($opts);
 
-                //                 // $url = http://www.giantbomb.com/api/..........
-                //                 // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
-                //                 $html2 = file_get_html($link, false, $context);
-                //                 // echo $file;
-                //             // // echo file_get_html("www.google.com", false, $context);
-                //             // $html2 = file_get_html($link, false, $context);
-                //             foreach ($html2->find('div[id="Abs1-content"]') as $index2 => $berita2) {
-                //                 $abstract = $berita2->find('p', 0)->innertext;
+                            // $url = http://www.giantbomb.com/api/..........
+                            // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
+                            $html2 = file_get_html($link, false, $context);
+                            // echo $file;
+                            // // echo file_get_html("www.google.com", false, $context);
+                            // $html2 = file_get_html($link, false, $context);
+                            foreach ($html2->find('div[id="Abs1-content"]') as $index2 => $berita2) {
+                                $abstract = $berita2->find('p', 0)->innertext;
 
-                //                 // echo $abstract;
-                //             }
-                //         }
-                //         else if ($cut[2] == "dl.acm.org") {
+                                // echo $abstract;
+                            }
+                        } else if ($cut[2] == "dl.acm.org") {
 
-                //             $opts = array(
-                //                 'http'=>array(
-                //                 'method'=>"GET",
-                //                 'header'=>"User-Agent: lashaparesha api script\r\n"
-                //                 ));
+                            $opts = array(
+                                'http' => array(
+                                    'method' => "GET",
+                                    'header' => "User-Agent: lashaparesha api script\r\n"
+                                )
+                            );
 
-                //                 $context = stream_context_create($opts);
+                            $context = stream_context_create($opts);
 
-                //                 // $url = http://www.giantbomb.com/api/..........
-                //                 // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
-                //                 $html2 = file_get_html($link, false, $context);
-                //                 // echo $file;
-                //             // // echo file_get_html("www.google.com", false, $context);
-                //             // $html2 = file_get_html($link, false, $context);
-                //             foreach ($html2->find('div[class="abstractSection abstractInFull"]') as $index2 => $berita2) {
-                //                 $abstract = $berita2->find('p', 0)->innertext;
+                            // $url = http://www.giantbomb.com/api/..........
+                            // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
+                            $html2 = file_get_html($link, false, $context);
+                            // echo $file;
+                            // // echo file_get_html("www.google.com", false, $context);
+                            // $html2 = file_get_html($link, false, $context);
+                            foreach ($html2->find('div[class="abstractSection abstractInFull"]') as $index2 => $berita2) {
+                                $abstract = $berita2->find('p', 0)->innertext;
 
-                //                 // echo $abstract;
-                //             }
-                //         }
-                //         else
-                //         {
-                //             $abstract = "";
-                //         }
-                //     }
-                //     $news[] = array(
-                //         "title" => $title,
-                //         "link" => $link,
-                //         "abstract"=> $abstract,
-                //         "cite" => $cited
-                //     );
-                //     // echo $title;
+                                // echo $abstract;
+                            }
+                        } else {
+                            $abstract = "";
+                        }
+                    }
+                    $news[] = array(
+                        "title" => $title,
+                        "link" => $link,
+                        "abstract" => $abstract,
+                        "cite" => $cited
+                    );
+                    // echo $title;
 
-                //     $stmt = $conn->prepare("INSERT INTO journals (title, link, cite, keyword, author, abstract) VALUES (?, ?, ?, ?, ?, ?)");
-                //     $stmt->bind_param("ssisss", $title, $link, $cited, $keyword, $authors, $abstract);
-                //     $stmt->execute();
-                // }
+                    $stmt = $conn->prepare("INSERT INTO journals (title, link, cite, keyword, author, abstract) VALUES (?, ?, ?, ?, ?, ?)");
+                    $stmt->bind_param("ssisss", $title, $link, $cited, $keyword, $authors, $abstract);
+                    $stmt->execute();
+                }
 
 
 
@@ -214,16 +211,28 @@
         <a href="#">Query Expansion 5</a>
         <br>
     </aside>
-    <div class="card" style="width: 50rem;">
-        <div class="card-body">
-            <h3 class="card-title">Title : Card title</h3>
-            <p class="card-text">Authors : Card title</p>
-            <p class="card-text">Abstract : Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-            <p class="card-text">Number of Citation :123</p>
-            <p class="card-text">Similarity Score : 0.0001</p>
-        </div>
-    </div>
-    <hr class="batas">
+    <?php if (count($news) > 0) : ?>
+        <?php foreach ($news as $berita) : ?>
+            <tr>
+                <!-- <td><?= $berita["title"] ?> </td>
+                <td><a href="<?= $berita["link"] ?>"><?= $berita["link"] ?> </a></td>
+                <td><?= $berita["abstract"] ?> </td>
+                <td><?= $berita["cite"]; ?></td> -->
+                <div class="card" style="width: 50rem;">
+                    <div class="card-body">
+                        <h3 class="card-title">Title : <?= $berita["title"] ?></h3>
+                        <p class="card-text">Authors : Card title</p>
+                        <p class="card-text">Abstract : <?= $berita["abstract"] ?></p>
+                        <p class="card-text">Number of Citation : <?= $berita["cite"]; ?></p>
+                        <p class="card-text">Similarity Score : 0.0001</p>
+                    </div>
+                </div>
+                <hr class="batas">
+
+            </tr>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
     <nav aria-label="Page navigation example">
         <ul class="pagination">
             <li class="page-item"><a class="page-link" href="#">Previous</a></li>
