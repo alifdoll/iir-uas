@@ -84,15 +84,9 @@
                 $html = file_get_html($url);
                 $news = [];
 
-                function str_contains(string $haystack, string $needle): bool
-                {
-                    return '' === $needle || false !== strpos($haystack, $needle);
-                }
-
-
                 foreach ($html->find('div[class="gs_ri"]') as $index => $berita) {
-                    
-                    
+
+
                     $title = $berita->find('a', 0)->innertext;
                     $link = $berita->find('a', 0)->href;
                     $cite = $berita->find('div[class="gs_fl"]', 0);
@@ -100,76 +94,76 @@
                     $authors = "tes";
                     // $authors = explode(" ",  $cite->find('a', 2)->innertext)[2];
                     // $abstract = explode(" ",  $cite->find('a', 2)->innertext)[2];
-                    
-                    
+
+
 
                     $cut = explode("/", $link);
                     // var_dump($cut[2]);
-                    if(str_contains($link, 'pdf'))
-                    {
+                    if (str_contains($link, 'pdf')) {
                         $abstract = "Tidak bisa crawl file pdf";
-                    }
-                    else {
+                    } else {
 
                         if ($cut[2] == "link.springer.com") {
-                            
+
                             $opts = array(
-                                'http'=>array(
-                                'method'=>"GET",
-                                'header'=>"User-Agent: lashaparesha api script\r\n"
-                                ));
-                                
-                                $context = stream_context_create($opts);
-                                
-                                // $url = http://www.giantbomb.com/api/..........
-                                // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
-                                $html2 = file_get_html($link, false, $context);
-                                // echo $file;
+                                'http' => array(
+                                    'method' => "GET",
+                                    'header' => "User-Agent: lashaparesha api script\r\n"
+                                )
+                            );
+
+                            $context = stream_context_create($opts);
+
+                            // $url = http://www.giantbomb.com/api/..........
+                            // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
+                            $html2 = file_get_html($link, false, $context);
+                            // echo $file;
                             // // echo file_get_html("www.google.com", false, $context);
                             // $html2 = file_get_html($link, false, $context);
                             foreach ($html2->find('div[id="Abs1-content"]') as $index2 => $berita2) {
                                 $abstract = $berita2->find('p', 0)->innertext;
-                                
+
                                 // echo $abstract;
                             }
-                        }
-                        else if ($cut[2] == "dl.acm.org") {
-                            
+                        } else if ($cut[2] == "dl.acm.org") {
+
                             $opts = array(
-                                'http'=>array(
-                                'method'=>"GET",
-                                'header'=>"User-Agent: lashaparesha api script\r\n"
-                                ));
-                                
-                                $context = stream_context_create($opts);
-                                
-                                // $url = http://www.giantbomb.com/api/..........
-                                // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
-                                $html2 = file_get_html($link, false, $context);
-                                // echo $file;
+                                'http' => array(
+                                    'method' => "GET",
+                                    'header' => "User-Agent: lashaparesha api script\r\n"
+                                )
+                            );
+
+                            $context = stream_context_create($opts);
+
+                            // $url = http://www.giantbomb.com/api/..........
+                            // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
+                            $html2 = file_get_html($link, false, $context);
+                            // echo $file;
                             // // echo file_get_html("www.google.com", false, $context);
                             // $html2 = file_get_html($link, false, $context);
                             foreach ($html2->find('div[class="abstractSection abstractInFull"]') as $index2 => $berita2) {
                                 $abstract = $berita2->find('p', 0)->innertext;
-                                
+
                                 // echo $abstract;
                             }
-                        }
-                        else
-                        {
+                        } else {
                             $abstract = "";
                         }
                     }
                     $news[] = array(
                         "title" => $title,
                         "link" => $link,
-                        "abstract"=> $abstract,
+                        "abstract" => $abstract,
                         "cite" => $cited
                     );
                     // echo $title;
 
-                    $stmt = $conn->prepare("INSERT INTO journals (title, link, cite, keyword, author, abstract) VALUES (?, ?, ?, ?, ?, ?)");
-                    $stmt->bind_param("ssisss", $title, $link, $cited, $keyword, $authors, $abstract);
+                    $stmt = $conn->prepare("INSERT INTO data (title, number_citations, authors, abstract) VALUES (?, ?, ?, ?)");
+                    var_dump($conn->error_list);
+                    $check = $stmt->bind_param("siss", $title, $cited,  $authors, $abstract);
+                    if (!$check) {
+                    }
                     $stmt->execute();
                 }
 
