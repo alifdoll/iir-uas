@@ -149,84 +149,91 @@ $sim = getJournals($keyword, $method);
 
 
 
-                    // $stmt = $conn->prepare("INSERT INTO crawl (title, link, cite, keyword) VALUES (?, ?, ?, ?)");
-                    // $stmt->bind_param("ssis", $title, $link, $cited, $keyword);
-                    // $stmt->execute();
-                }
+                    $stmt = $conn->prepare("INSERT INTO crawl (title, link, cite, keyword) VALUES (?, ?, ?, ?)");
+                    $stmt->bind_param("ssis", $title, $link, $cited, $keyword);
+                    $stmt->execute();
 
-                $sql = 'SELECT * FROM crawl';
-                $res = $conn->query($sql);
+                    $sql = 'SELECT * FROM crawl ORDER BY id DESC LIMIT 1;';
+                    $res = $conn->query($sql);
 
-                $stemmed_titles = [];
-                if ($res->num_rows > 0) {
-                    while ($row = $res->fetch_assoc()) {
+                    $stemmed_titles = [];
+                    if ($res->num_rows > 0) {
+                        while ($row = $res->fetch_assoc()) {
 
-                        $cut = explode("/", $link);
-                        // var_dump($cut[2]);
-                        if (str_contains($link, 'pdf')) {
-                            $abstract = "Tidak bisa crawl file pdf";
-                        } else {
-
-                            if ($cut[2] == "link.springer.com") {
-
-                                $opts = array(
-                                    'http' => array(
-                                        'method' => "GET",
-                                        'header' => "User-Agent: lashaparesha api script\r\n"
-                                    )
-                                );
-
-                                $context = stream_context_create($opts);
-
-                                // $url = http://www.giantbomb.com/api/..........
-                                // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
-                                $html2 = file_get_html($link, false, $context);
-                                // echo $file;
-                                // // echo file_get_html("www.google.com", false, $context);
-                                // $html2 = file_get_html($link, false, $context);
-                                foreach ($html2->find('div[id="Abs1-content"]') as $index2 => $berita2) {
-                                    $abstract = $berita2->find('p', 0)->innertext;
-
-                                    // echo $abstract;
-                                }
-                            } else if ($cut[2] == "dl.acm.org") {
-
-                                $opts = array(
-                                    'http' => array(
-                                        'method' => "GET",
-                                        'header' => "User-Agent: lashaparesha api script\r\n"
-                                    )
-                                );
-
-                                $context = stream_context_create($opts);
-
-                                // $url = http://www.giantbomb.com/api/..........
-                                // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
-                                $html2 = file_get_html($link, false, $context);
-                                // echo $file;
-                                // // echo file_get_html("www.google.com", false, $context);
-                                // $html2 = file_get_html($link, false, $context);
-                                foreach ($html2->find('div[class="abstractSection abstractInFull"]') as $index2 => $berita2) {
-                                    $abstract = $berita2->find('p', 0)->innertext;
-
-                                    // echo $abstract;
-                                }
+                            $cut = explode("/", $row["link"]);
+                            // var_dump($cut[2]);
+                            if (str_contains($row["link"], 'pdf')) {
+                                $abstract = "Tidak bisa crawl file pdf";
                             } else {
-                                $abstract = "";
-                            }
-                        }
-                        // $stemmed_title = Porter2::stem($row['title']);
-                        // $stemmed_titles[] = $stemmed_title;
-                        $journals[] = [
-                            'id' => $row['id'],
-                            'title' => $row['title'],
-                            'link' => $row['link'],
-                            'cite' => $row['cite'],
-                            'keyword' => $row['keyword'],
 
-                        ];
+                                if ($cut[2] == "link.springer.com") {
+
+                                    $opts = array(
+                                        'http' => array(
+                                            'method' => "GET",
+                                            'header' => "User-Agent: lashaparesha api script\r\n"
+                                        )
+                                    );
+
+                                    $context = stream_context_create($opts);
+
+                                    // $url = http://www.giantbomb.com/api/..........
+                                    // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
+                                    $html2 = file_get_html($row["link"], false, $context);
+                                    // echo $file;
+                                    // // echo file_get_html("www.google.com", false, $context);
+                                    // $html2 = file_get_html($link, false, $context);
+                                    foreach ($html2->find('div[id="Abs1-content"]') as $index2 => $berita2) {
+                                        $abstract = $berita2->find('p', 0)->innertext;
+
+                                        // echo $abstract;
+                                    }
+                                } else if ($cut[2] == "dl.acm.org") {
+
+                                    $opts = array(
+                                        'http' => array(
+                                            'method' => "GET",
+                                            'header' => "User-Agent: lashaparesha api script\r\n"
+                                        )
+                                    );
+
+                                    $context = stream_context_create($opts);
+
+                                    // $url = http://www.giantbomb.com/api/..........
+                                    // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
+                                    $html2 = file_get_html($row["link"], false, $context);
+                                    // echo $file;
+                                    // // echo file_get_html("www.google.com", false, $context);
+                                    // $html2 = file_get_html($link, false, $context);
+                                    foreach ($html2->find('div[class="abstractSection abstractInFull"]') as $index2 => $berita2) {
+                                        $abstract = $berita2->find('p', 0)->innertext;
+
+                                        // echo $abstract;
+                                    }
+                                } else {
+                                    $abstract = "";
+                                }
+                            }
+
+                            $stmt2 = $conn->prepare("INSERT INTO journals (abstract, author, data) VALUES (?, ?, ?)");
+                            $stmt2->bind_param("ssi", $abstract, $authors, $row["id"]);
+                            $stmt2->execute();
+                            // $stemmed_title = Porter2::stem($row['title']);
+                            // $stemmed_titles[] = $stemmed_title;
+                            $journals[] = [
+                                'id' => $row['id'],
+                                'title' => $row['title'],
+                                'link' => $row['link'],
+                                'cite' => $row['cite'],
+                                'keyword' => $row['keyword'],
+                                'abstract' => $abstract,
+
+                            ];
+                        }
                     }
                 }
+
+
 
                 var_dump($journals);
 
@@ -265,7 +272,7 @@ $sim = getJournals($keyword, $method);
                     <div class="card-body">
                         <h3 class="card-title">Title : <?= $journal["title"] ?></h3>
                         <p class="card-text">Authors : Card title</p>
-                        <!-- <p class="card-text">Abstract : <?= $journal["abstract"] ?></p> -->
+                        <p class="card-text">Abstract : <?= $journal["abstract"] ?></p>
                         <p class="card-text">Number of Citation : <?= $journal["cite"]; ?></p>
                         <p class="card-text">Similarity Score : 0.0001</p>
                     </div>
