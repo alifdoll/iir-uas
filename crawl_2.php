@@ -36,6 +36,27 @@
         }
     </style>
 </head>
+<?php
+
+use markfullmer\porter2\Porter2;
+
+include_once('Porter2.php');
+include_once('journals.php');
+
+$keyword = '';
+$method = '';
+if (isset($_GET['keyword']) && isset($_GET['method'])) {
+    $keyword = $_GET['keyword'];
+    $method = $_GET['method'];
+}
+
+$sim = getJournals($keyword, $method);
+
+// var_dump($journals);
+
+// var_dump($journals[0]);
+// die;
+?>
 
 <body>
     <!--Header-->
@@ -53,7 +74,7 @@
         <div class="container">
             <div class="center gap">
                 <h3>Welcome to Scientific Journals Search Engine</h3>
-                <form method="GET" action="index2.php">
+                <form method="GET" action="crawl_2.php">
                     <p class="lead">Input Keyword <input type="text" name="keyword" value="<?php echo (isset($_GET["keyword"])) ? $_GET["keyword"] : "";  ?>"> <input type="submit">
                         <!-- <br> -->
                     </p>
@@ -126,73 +147,96 @@
 
 
 
-                    $cut = explode("/", $link);
-                    // var_dump($cut[2]);
-                    if (str_contains($link, 'pdf')) {
-                        $abstract = "Tidak bisa crawl file pdf";
-                    } else {
 
-                        if ($cut[2] == "link.springer.com") {
 
-                            $opts = array(
-                                'http' => array(
-                                    'method' => "GET",
-                                    'header' => "User-Agent: lashaparesha api script\r\n"
-                                )
-                            );
-
-                            $context = stream_context_create($opts);
-
-                            // $url = http://www.giantbomb.com/api/..........
-                            // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
-                            $html2 = file_get_html($link, false, $context);
-                            // echo $file;
-                            // // echo file_get_html("www.google.com", false, $context);
-                            // $html2 = file_get_html($link, false, $context);
-                            foreach ($html2->find('div[id="Abs1-content"]') as $index2 => $berita2) {
-                                $abstract = $berita2->find('p', 0)->innertext;
-
-                                // echo $abstract;
-                            }
-                        } else if ($cut[2] == "dl.acm.org") {
-
-                            $opts = array(
-                                'http' => array(
-                                    'method' => "GET",
-                                    'header' => "User-Agent: lashaparesha api script\r\n"
-                                )
-                            );
-
-                            $context = stream_context_create($opts);
-
-                            // $url = http://www.giantbomb.com/api/..........
-                            // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
-                            $html2 = file_get_html($link, false, $context);
-                            // echo $file;
-                            // // echo file_get_html("www.google.com", false, $context);
-                            // $html2 = file_get_html($link, false, $context);
-                            foreach ($html2->find('div[class="abstractSection abstractInFull"]') as $index2 => $berita2) {
-                                $abstract = $berita2->find('p', 0)->innertext;
-
-                                // echo $abstract;
-                            }
-                        } else {
-                            $abstract = "";
-                        }
-                    }
-                    $news[] = array(
-                        "title" => $title,
-                        "link" => $link,
-                        "abstract" => $abstract,
-                        "cite" => $cited
-                    );
-                    // echo $title;
-
-                    $stmt = $conn->prepare("INSERT INTO journals (title, link, cite, keyword, author, abstract) VALUES (?, ?, ?, ?, ?, ?)");
-                    $stmt->bind_param("ssisss", $title, $link, $cited, $keyword, $authors, $abstract);
-                    $stmt->execute();
+                    // $stmt = $conn->prepare("INSERT INTO crawl (title, link, cite, keyword) VALUES (?, ?, ?, ?)");
+                    // $stmt->bind_param("ssis", $title, $link, $cited, $keyword);
+                    // $stmt->execute();
                 }
 
+                $sql = 'SELECT * FROM crawl';
+                $res = $conn->query($sql);
+
+                $stemmed_titles = [];
+                if ($res->num_rows > 0) {
+                    while ($row = $res->fetch_assoc()) {
+
+                        $cut = explode("/", $link);
+                        // var_dump($cut[2]);
+                        if (str_contains($link, 'pdf')) {
+                            $abstract = "Tidak bisa crawl file pdf";
+                        } else {
+
+                            if ($cut[2] == "link.springer.com") {
+
+                                $opts = array(
+                                    'http' => array(
+                                        'method' => "GET",
+                                        'header' => "User-Agent: lashaparesha api script\r\n"
+                                    )
+                                );
+
+                                $context = stream_context_create($opts);
+
+                                // $url = http://www.giantbomb.com/api/..........
+                                // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
+                                $html2 = file_get_html($link, false, $context);
+                                // echo $file;
+                                // // echo file_get_html("www.google.com", false, $context);
+                                // $html2 = file_get_html($link, false, $context);
+                                foreach ($html2->find('div[id="Abs1-content"]') as $index2 => $berita2) {
+                                    $abstract = $berita2->find('p', 0)->innertext;
+
+                                    // echo $abstract;
+                                }
+                            } else if ($cut[2] == "dl.acm.org") {
+
+                                $opts = array(
+                                    'http' => array(
+                                        'method' => "GET",
+                                        'header' => "User-Agent: lashaparesha api script\r\n"
+                                    )
+                                );
+
+                                $context = stream_context_create($opts);
+
+                                // $url = http://www.giantbomb.com/api/..........
+                                // $link2 = "https://link.springer.com/article/10.1057/jors.1992.4";
+                                $html2 = file_get_html($link, false, $context);
+                                // echo $file;
+                                // // echo file_get_html("www.google.com", false, $context);
+                                // $html2 = file_get_html($link, false, $context);
+                                foreach ($html2->find('div[class="abstractSection abstractInFull"]') as $index2 => $berita2) {
+                                    $abstract = $berita2->find('p', 0)->innertext;
+
+                                    // echo $abstract;
+                                }
+                            } else {
+                                $abstract = "";
+                            }
+                        }
+                        // $stemmed_title = Porter2::stem($row['title']);
+                        // $stemmed_titles[] = $stemmed_title;
+                        $journals[] = [
+                            'id' => $row['id'],
+                            'title' => $row['title'],
+                            'link' => $row['link'],
+                            'cite' => $row['cite'],
+                            'keyword' => $row['keyword'],
+
+                        ];
+                    }
+                }
+
+                var_dump($journals);
+
+                // $news[] = array(
+                //     "title" => $title,
+                //     "link" => $link,
+                //     "abstract" => $abstract,
+                //     "cite" => $cited
+                // );
+                // echo $title;
 
 
                 ?>
@@ -214,19 +258,15 @@
         <a href="#">Query Expansion 5</a>
         <br>
     </aside>
-    <?php if (count($news) > 0) : ?>
-        <?php foreach ($news as $berita) : ?>
+    <?php if (count($journals) > 0) : ?>
+        <?php foreach ($journals as $journal) : ?>
             <tr>
-                <!-- <td><?= $berita["title"] ?> </td>
-                <td><a href="<?= $berita["link"] ?>"><?= $berita["link"] ?> </a></td>
-                <td><?= $berita["abstract"] ?> </td>
-                <td><?= $berita["cite"]; ?></td> -->
                 <div class="card" style="width: 50rem;">
                     <div class="card-body">
-                        <h3 class="card-title">Title : <?= $berita["title"] ?></h3>
+                        <h3 class="card-title">Title : <?= $journal["title"] ?></h3>
                         <p class="card-text">Authors : Card title</p>
-                        <p class="card-text">Abstract : <?= $berita["abstract"] ?></p>
-                        <p class="card-text">Number of Citation : <?= $berita["cite"]; ?></p>
+                        <!-- <p class="card-text">Abstract : <?= $journal["abstract"] ?></p> -->
+                        <p class="card-text">Number of Citation : <?= $journal["cite"]; ?></p>
                         <p class="card-text">Similarity Score : 0.0001</p>
                     </div>
                 </div>
@@ -238,15 +278,15 @@
 
     <nav aria-label="Page navigation example">
         <ul class="pagination">
-        <?php if ($start >= 10 && $start >0) : ?>
-            <li class="page-item"><a class="page-link" href="?keyword=pdf&data=<?= $start - 10?>">Previous</a></li>
-        <?php endif; ?>
+            <?php if ($start >= 10 && $start > 0) : ?>
+                <li class="page-item"><a class="page-link" href="?keyword=pdf&data=<?= $start - 10 ?>">Previous</a></li>
+            <?php endif; ?>
             <li class="page-item"><a class="page-link" href="?keyword=pdf&data=10">1</a></li>
             <li class="page-item"><a class="page-link" href="?keyword=pdf&data=20">2</a></li>
             <li class="page-item"><a class="page-link" href="?keyword=pdf&data=30">3</a></li>
-        <?php if ($start < 30 && $start >=0) : ?>
-            <li class="page-item"><a class="page-link" href="?keyword=pdf&data=<?= $start + 10?>">Next</a></li>
-        <?php endif; ?>
+            <?php if ($start < 30 && $start >= 0) : ?>
+                <li class="page-item"><a class="page-link" href="?keyword=pdf&data=<?= $start + 10 ?>">Next</a></li>
+            <?php endif; ?>
         </ul>
     </nav>
     <!-- <table class="table table-dark">

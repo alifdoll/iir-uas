@@ -100,7 +100,7 @@ function getJournals($keyword = "", $method = 'euclidean')
                 'similarity_score' => $distance[$i]
             ];
         }
-        usort($final_journal, fn ($doc, $query) => $doc['similarity_score'] > $query['similarity_score']);
+        // usort($final_journal, fn ($doc, $query) => $doc['similarity_score'] > $query['similarity_score']);
         return $final_journal;
     }
     return $journals;
