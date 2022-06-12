@@ -63,6 +63,9 @@ if ($res->num_rows > 0) {
     $journals = $res->fetch_all(MYSQLI_ASSOC);
 }
 
+var_dump(($journals[0]));
+die;
+
 foreach ($journals as $index => $j) {
     $jum_index += $index;
     $link = $j['link'];
