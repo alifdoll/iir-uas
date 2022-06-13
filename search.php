@@ -16,9 +16,11 @@ use markfullmer\porter2\Porter2;
 
 include_once('Porter2.php');
 include_once('journals.php');
+include_once('query_expansions.php');
 
 $keyword = '';
 $method = '';
+$query_expansions = [];
 if (isset($_GET['keyword']) && isset($_GET['method'])) {
     $keyword = $_GET['keyword'];
     $method = $_GET['method'];
@@ -26,11 +28,10 @@ if (isset($_GET['keyword']) && isset($_GET['method'])) {
 
 $journals = getJournals($keyword, $method);
 
-$test = 'user acceptance of information technology: theories and models';
-$tes_2 = Porter2::stem($test);
-
-// var_dump($journals[0]);
-// die;
+if ($keyword != '') {
+    $top_3 = array_slice($journals, 0, 3);
+    $query_expansions = getQueryExpansions($keyword, $top_3);
+}
 ?>
 
 <body>
@@ -60,17 +61,13 @@ $tes_2 = Porter2::stem($test);
             <div class="col">
                 <h1>The Search Result</h1>
                 <aside class="float-right">
-                    <h3>Related Search</h3>
-                    <a href="#">Query Expansion 1</a>
-                    <br>
-                    <a href="#">Query Expansion 2</a>
-                    <br>
-                    <a href="#">Query Expansion 3</a>
-                    <br>
-                    <a href="#">Query Expansion 4</a>
-                    <br>
-                    <a href="#">Query Expansion 5</a>
-                    <br>
+                    <?php if (count($query_expansions) > 0) : ?>
+                        <h3>Related Search</h3>
+                        <?php foreach ($query_expansions as $q) : ?>
+                            <a href="?keyword=<?= $q ?>&method=<?= $method ?>"><?= $q; ?></a>
+                            <br>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </aside>
                 <?php foreach ($journals as $j) : ?>
                     <div class="card" style="width: 50rem;">

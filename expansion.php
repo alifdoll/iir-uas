@@ -12,11 +12,16 @@
 <?php
 
 require_once __DIR__ . '/vendor/autoload.php';
-require_once('Porter2.php');
+// require_once('Porter2.php');
 
 use markfullmer\porter2\Porter2;
+use MathPHP\Probability\Distribution\Continuous\Continuous;
+use Nadar\Stemming\Stemm;
+use Phpml\FeatureExtraction\TfIdfTransformer;
 use Phpml\FeatureExtraction\TokenCountVectorizer;
 use Phpml\Tokenization\WhitespaceTokenizer;
+use StopWords\StopWords;
+use Wamania\Snowball\StemmerManager;
 
 $data = [
     'Information technology in health promotion',
@@ -24,15 +29,19 @@ $data = [
     'Smart City and information technology: A review'
 ];
 
+$query = 'technology';
+
 foreach ($data as $index => $d) {
-    $stemmed = Porter2::stem($d);
-    $data[$index] = $stemmed;
+    $lowered = strtolower($d);
+    // $stemmed = Stemm::stem($d, 'en');
+    $stop_words_remover = new StopWords('en');
+    $stopped = $stop_words_remover->clean($lowered);
+
+    $data[$index] = $stopped;
 }
 
-$test = "The brown fox jumps over";
-$stemmed_stuff = Porter2::stem($test);
-var_dump($test);
-die;
+// var_dump($data[1]);
+// die;
 
 $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
 $tf->fit($data);
@@ -40,6 +49,44 @@ $tf->transform($data);
 
 
 $vocab = $tf->getVocabulary();
+
+// $tfidf = new TfIdfTransformer($data);
+// $tfidf->transform($data);
+
+$data_new = [];
+
+foreach ($vocab as $i => $vc) {
+    $data_new[$vc] = array_sum(array_column($data, $i));
+}
+
+arsort($data_new);
+
+$terms = [];
+foreach ($data_new as $key => $d) {
+    $terms[] = $key;
+}
+
+
+if (count($terms) > 1) {
+    $terms = array_slice($terms, 0, 4);
+}
+
+
+
+
+$expansions = [];
+
+foreach ($terms as $term) {
+    if ($term == $query) continue;
+    $expansions[] = $query . " " . $term;
+}
+
+var_dump($expansions);
+
+
+
+
+
 ?>
 
 <body>
@@ -62,7 +109,12 @@ $vocab = $tf->getVocabulary();
                     <?php endforeach; ?>
                 </tr>
             <?php endforeach; ?>
-
+            <tr>
+                <td>#</td>
+                <?php foreach ($vocab as $index => $vc) : ?>
+                    <td><?php echo array_sum(array_column($data, $index)); ?></td>
+                <?php endforeach; ?>
+            </tr>
         </tbody>
     </table>
 

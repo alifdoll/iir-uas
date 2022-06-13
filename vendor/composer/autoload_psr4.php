@@ -7,12 +7,14 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'voku\\' => array($vendorDir . '/voku/portable-ascii/src/voku', $vendorDir . '/voku/portable-utf8/src/voku'),
+    'markfullmer\\porter2\\' => array($vendorDir . '/markfullmer/porter2/src', $vendorDir . '/markfullmer/porter2/test'),
     'Wamania\\Snowball\\' => array($vendorDir . '/wamania/php-stemmer/src'),
     'Symfony\\Polyfill\\Php72\\' => array($vendorDir . '/symfony/polyfill-php72'),
     'Symfony\\Polyfill\\Mbstring\\' => array($vendorDir . '/symfony/polyfill-mbstring'),
     'Symfony\\Polyfill\\Intl\\Normalizer\\' => array($vendorDir . '/symfony/polyfill-intl-normalizer'),
     'Symfony\\Polyfill\\Intl\\Grapheme\\' => array($vendorDir . '/symfony/polyfill-intl-grapheme'),
     'Symfony\\Polyfill\\Iconv\\' => array($vendorDir . '/symfony/polyfill-iconv'),
-    'Phpml\\' => array($vendorDir . '/php-ai/php-ml/src'),
+    'StopWords\\' => array($vendorDir . '/juanantoniodelgado/stopwords/src'),
+    'Nadar\\Stemming\\' => array($vendorDir . '/nadar/stemming/src'),
     'MathPHP\\' => array($vendorDir . '/markrogoyski/math-php/src'),
 );

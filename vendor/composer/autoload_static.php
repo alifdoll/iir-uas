@@ -20,6 +20,10 @@ class ComposerStaticInit3c8a283d43faa1f50c12a6c9a1594520
         array (
             'voku\\' => 5,
         ),
+        'm' => 
+        array (
+            'markfullmer\\porter2\\' => 20,
+        ),
         'W' => 
         array (
             'Wamania\\Snowball\\' => 17,
@@ -31,10 +35,11 @@ class ComposerStaticInit3c8a283d43faa1f50c12a6c9a1594520
             'Symfony\\Polyfill\\Intl\\Normalizer\\' => 33,
             'Symfony\\Polyfill\\Intl\\Grapheme\\' => 31,
             'Symfony\\Polyfill\\Iconv\\' => 23,
+            'StopWords\\' => 10,
         ),
-        'P' => 
+        'N' => 
         array (
-            'Phpml\\' => 6,
+            'Nadar\\Stemming\\' => 15,
         ),
         'M' => 
         array (
@@ -47,6 +52,11 @@ class ComposerStaticInit3c8a283d43faa1f50c12a6c9a1594520
         array (
             0 => __DIR__ . '/..' . '/voku/portable-ascii/src/voku',
             1 => __DIR__ . '/..' . '/voku/portable-utf8/src/voku',
+        ),
+        'markfullmer\\porter2\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/markfullmer/porter2/src',
+            1 => __DIR__ . '/..' . '/markfullmer/porter2/test',
         ),
         'Wamania\\Snowball\\' => 
         array (
@@ -72,9 +82,13 @@ class ComposerStaticInit3c8a283d43faa1f50c12a6c9a1594520
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-iconv',
         ),
-        'Phpml\\' => 
+        'StopWords\\' => 
         array (
-            0 => __DIR__ . '/..' . '/php-ai/php-ml/src',
+            0 => __DIR__ . '/..' . '/juanantoniodelgado/stopwords/src',
+        ),
+        'Nadar\\Stemming\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/nadar/stemming/src',
         ),
         'MathPHP\\' => 
         array (
@@ -88,6 +102,13 @@ class ComposerStaticInit3c8a283d43faa1f50c12a6c9a1594520
             'Sastrawi\\' => 
             array (
                 0 => __DIR__ . '/..' . '/sastrawi/sastrawi/src',
+            ),
+        ),
+        'P' => 
+        array (
+            'Phpml' => 
+            array (
+                0 => __DIR__ . '/..' . '/php-ai/php-ml/src',
             ),
         ),
     );
