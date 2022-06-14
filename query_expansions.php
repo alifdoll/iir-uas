@@ -8,13 +8,10 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 function getQueryExpansions($query, array $terms)
 {
-
     foreach ($terms as $index => $d) {
         $lowered = strtolower($d['title']);
-        // $stemmed = Stemm::stem($d, 'en');
         $stop_words_remover = new StopWords('en');
         $stopped = $stop_words_remover->clean($lowered);
-
         $terms[$index] = $stopped;
     }
 
@@ -49,8 +46,18 @@ function getQueryExpansions($query, array $terms)
 
     foreach ($expansion_term as $term) {
         if ($term == $query) continue;
+        $query = trimQuery($query);
         $expansions[] = $query . " " . $term;
     }
 
     return $expansions;
+}
+
+function trimQuery($query)
+{
+    $count = explode(" ", $query);
+    if (count($count) > 3) {
+        $query = $count[0] . " " . $count[1] . " " . $count[2];
+    }
+    return $query;
 }

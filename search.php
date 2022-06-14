@@ -20,13 +20,23 @@ include_once('query_expansions.php');
 
 $keyword = '';
 $method = '';
+$page = 1;
 $query_expansions = [];
 if (isset($_GET['keyword']) && isset($_GET['method'])) {
     $keyword = $_GET['keyword'];
     $method = $_GET['method'];
 }
 
-$journals = getJournals($keyword, $method);
+if (isset($_GET['page'])) {
+    $page = $_GET['page'];
+}
+
+
+$journal_count = getJournalsCount();
+$page_count = round((int)$journal_count / 5);
+
+$offset = ($page - 1) * 5;
+$journals = getJournals($keyword, $method, $offset);
 
 if ($keyword != '') {
     $top_3 = array_slice($journals, 0, 3);
@@ -68,6 +78,10 @@ if ($keyword != '') {
                             <br>
                         <?php endforeach; ?>
                     <?php endif; ?>
+                    <br>
+                    <a href="crawl_fix.php">
+                        <h4>Crawl</h4>
+                    </a>
                 </aside>
                 <?php foreach ($journals as $j) : ?>
                     <div class="card" style="width: 50rem;">
@@ -75,7 +89,7 @@ if ($keyword != '') {
                             <h3 class="card-title">Title : <?= $j['title']; ?></h3>
                             <p class="card-text">Authors : <?= $j['authors']; ?></p>
                             <p class="card-text">Abstract : <?= $j['abstract']; ?></p>
-                            <p class="card-text">Number of Citation : <?= $j['number_citations']; ?></p>
+                            <p class="card-text">Number of Citation : <?= $j['cite']; ?></p>
                             <?php if ($keyword != '') : ?>
                                 <p class="card-text">Similarity Score : <?= $j['similarity_score']; ?></p>
                             <?php endif; ?>
@@ -83,15 +97,24 @@ if ($keyword != '') {
                     </div>
                     <hr class="batas">
                 <?php endforeach; ?>
-                <!-- <div class="card" style="width: 50rem;">
-                    <div class="card-body">
-                        <h3 class="card-title">Title : Card title</h3>
-                        <p class="card-text">Authors : Card title</p>
-                        <p class="card-text">Abstract : Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                        <p class="card-text">Number of Citation :123</p>
-                        <p class="card-text">Similarity Score : 0.0001</p>
-                    </div>
-                </div> -->
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                        <?php for ($i = 1; $i <= $page_count; $i++) : ?>
+                            <li class="page-item <?= ($i == $page) ? "active" : "" ?>">
+                                <?php if (isset($_GET['keyword']) && isset($_GET['method'])) : ?>
+                                    <a class="page-link" href="?keyword=<?= $keyword ?>&method=<?= $method ?>&page=<?= $i ?>"><?= $i; ?></a>
+                                <?php else : ?>
+                                    <a class="page-link" href="?page=<?= $i ?>"><?= $i; ?></a>
+                                <?php endif; ?>
+                            </li>
+                        <?php endfor; ?>
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>
