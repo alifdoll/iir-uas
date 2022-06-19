@@ -15,8 +15,6 @@ function getQueryExpansions($query, array $terms)
         $terms[$index] = $stopped;
     }
 
-
-
     $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
     $tf->fit($terms);
     $tf->transform($terms);
@@ -37,15 +35,19 @@ function getQueryExpansions($query, array $terms)
         $expansion_term[] = $key;
     }
 
-
     if (count($expansion_term) > 1) {
         $expansion_term = array_slice($expansion_term, 0, 4);
     }
 
     $expansions = [];
 
-    foreach ($expansion_term as $term) {
-        if ($term == $query) continue;
+    $exploded_query = explode(" ", $query);
+    foreach ($expansion_term as $index => $term) {
+        $skip = false;
+        foreach ($exploded_query as $j => $q) {
+            if ($q == $term) $skip = true;
+        }
+        if ($skip) continue;
         $query = trimQuery($query);
         $expansions[] = $query . " " . $term;
     }
@@ -56,8 +58,8 @@ function getQueryExpansions($query, array $terms)
 function trimQuery($query)
 {
     $count = explode(" ", $query);
-    if (count($count) > 3) {
-        $query = $count[0] . " " . $count[1] . " " . $count[2];
+    if (count($count) >= 3) {
+        $query = $count[1] . " " . $count[0];
     }
     return $query;
 }

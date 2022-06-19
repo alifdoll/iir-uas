@@ -37,13 +37,12 @@ function getJournals($keyword = "", $method = 'euclidean', $offset = 0)
     $sql = "SELECT * FROM journal_data LIMIT 5 OFFSET $offset";
     $res = $conn->query($sql);
 
-    $stemmed_titles = [];
+    $titles = [];
     if ($res->num_rows > 0) {
-
         if ($keyword != "") {
             while ($row = $res->fetch_assoc()) {
                 $stemmed_title = Porter2::stem($row['title']);
-                $stemmed_titles[] = $stemmed_title;
+                $titles[] = $stemmed_title;
                 $journals[] = [
                     'title' => $row['title'],
                     'cite' => $row['cite'],
@@ -51,7 +50,7 @@ function getJournals($keyword = "", $method = 'euclidean', $offset = 0)
                     'authors' => $row['authors']
                 ];
             }
-            $stemmed_titles[] = $keyword;
+            $titles[] = $keyword;
         } else {
             $journals = $res->fetch_all(MYSQLI_ASSOC);
         }
@@ -59,39 +58,44 @@ function getJournals($keyword = "", $method = 'euclidean', $offset = 0)
 
     if ($keyword != "") {
         $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
-        $tf->fit($stemmed_titles);
-        $tf->transform($stemmed_titles);
+        $tf->fit($titles);
+        $tf->transform($titles);
 
-        $tf_idf = new TfIdfTransformer($stemmed_titles);
-        $tf_idf->transform($stemmed_titles);
+        $tf_idf = new TfIdfTransformer($titles);
+        $tf_idf->transform($titles);
 
-        $euclidean = new Euclidean();
         $distance = [];
-        $idx = count($stemmed_titles) - 1;
+        $query_index = count($titles) - 1;
 
         if ($method != 'euclidean') {
-            foreach ($stemmed_titles as $index => $data) {
-                $numerator = 0.0;
+            // DICE COEFFICIENT
+            foreach ($titles as $index => $data) {
+                $numerator = 0;
                 $denom_wkq = 0.0;
                 $denom_wkj = 0.0;
-                for ($i = 0; $i < 10; $i++) {
-                    $numerator += $stemmed_titles[$idx][$i] * $stemmed_titles[$index][$i];
-                    $denom_wkq += pow($stemmed_titles[$idx][$i], 2);
-                    $denom_wkj += pow($stemmed_titles[$index][$i], 2);
+
+                for ($i = 0; $i < count($titles[$index]); $i++) {
+                    $numerator += $titles[$query_index][$i] * $titles[$index][$i];
+                    $denom_wkq += pow($titles[$query_index][$i], 2);
+                    $denom_wkj += pow($titles[$index][$i], 2);
                 }
 
+                // 0 * 0.123532
+                // 0.12376 * 0 
+                // 
                 if ((0.5 * $denom_wkq + 0.5 * $denom_wkj) != 0) {
                     $distance[] = $numerator / (0.5 * $denom_wkq + 0.5 * $denom_wkj);
                 } else $distance[] = 0;
             }
         } else {
-            foreach ($stemmed_titles as $index => $data) {
-                if ($index == $idx) break;
-                $distance[] = $euclidean->distance($data, $stemmed_titles[$idx]);
+            // EUCLIDEAN DISTANCE
+            $euclidean = new Euclidean();
+            foreach ($titles as $index => $data) {
+                $distance[] = $euclidean->distance($data, $titles[$query_index]);
             }
         }
 
-        array_pop($stemmed_titles);
+        array_pop($titles);
 
         $final_journal = [];
         foreach ($journals as $i => $row) {
@@ -103,7 +107,12 @@ function getJournals($keyword = "", $method = 'euclidean', $offset = 0)
                 'similarity_score' => $distance[$i]
             ];
         }
-        usort($final_journal, fn ($doc, $query) => $doc['similarity_score'] > $query['similarity_score']);
+
+        if ($method != 'euclidean') {
+            usort($final_journal, fn ($doc, $query) => $doc['similarity_score'] > $query['similarity_score']);
+        } else {
+            usort($final_journal, fn ($doc, $query) => $doc['similarity_score'] < $query['similarity_score']);
+        }
         return $final_journal;
     }
     return $journals;
@@ -122,6 +131,20 @@ function getJournalsCount()
     return $count;
 }
 
+function getCrawlCount()
+{
+    $conn = connectDB();
+    $sql = "SELECT count(*) FROM crawl";
+    $res = $conn->query($sql);
+
+    $count = 0;
+    if ($res->num_rows > 0) {
+        $count = $res->fetch_array()[0];
+    }
+    return $count;
+}
+
+// FUNCTION CRAWL GOOGLE SCHOLAR
 function crawl($keyword, $page = 0)
 {
 
@@ -146,14 +169,15 @@ function crawl($keyword, $page = 0)
     }
 }
 
+
+// FUNCTION MEMASUKKAN DATA ABSTRACT DARI HASIL CRAWL KE DATABASE
 function insertDatabase($offset = 0)
 {
     $conn = connectDB();
     $sql = "SELECT * FROM crawl WHERE crawled = 'NOT YET'";
     $res = $conn->query($sql);
 
-
-    $stemmed_titles = [];
+    $titles = [];
 
     $journals = [];
 
@@ -205,22 +229,20 @@ function insertDatabase($offset = 0)
                 ];
             }
         } catch (\Throwable $th) {
+            setCrawlFail($j["id"], $conn);
         }
 
 
-        if ($found_abs || $found_authors) {
+        if ($found_abs) {
             insertJournalData($j["id"], $data, $conn);
+        } else {
+            setCrawlFail($j["id"], $conn);
         }
-
-        // SETELAH CRAWL ABSTRACT DAN AUTHOR
-        // MASUKKAN KE TABLE JOURNALS
-
-        // INSERT ......
-
     }
 }
 
 
+// FUNCTION UNTUK MEMASUKKAN DATA KEDALAM DATABASE
 function insertJournalData($id, $data, $conn)
 {
     $stmt = $conn->prepare("INSERT INTO journal_data (title, abstract, authors, cite, crawl_id) VALUES (?, ?, ?, ?, ?)");
@@ -228,5 +250,9 @@ function insertJournalData($id, $data, $conn)
     $stmt->execute();
 
     $conn->query("UPDATE crawl SET crawled = 'SUCCESS' WHERE id = $id");
-    // var_dump($conn->error_list);
+}
+
+function setCrawlFail($id, $conn)
+{
+    $conn->query("UPDATE crawl SET crawled = 'FAIL' WHERE id = $id");
 }

@@ -32,13 +32,16 @@ if (isset($_GET['page'])) {
 }
 
 
+
 $journal_count = getJournalsCount();
-$page_count = round((int)$journal_count / 5);
+$page_count = ceil((int)$journal_count / 5);
+
 
 $offset = ($page - 1) * 5;
 $journals = getJournals($keyword, $method, $offset);
 
 if ($keyword != '') {
+    // AMBIL TOP 3 UNTUK QUERY EXPANSION
     $top_3 = array_slice($journals, 0, 3);
     $query_expansions = getQueryExpansions($keyword, $top_3);
 }
@@ -79,7 +82,7 @@ if ($keyword != '') {
                         <?php endforeach; ?>
                     <?php endif; ?>
                     <br>
-                    <a href="crawl_fix.php">
+                    <a href="crawl.php">
                         <h4>Crawl</h4>
                     </a>
                 </aside>
