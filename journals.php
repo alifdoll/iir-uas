@@ -109,9 +109,9 @@ function getJournals($keyword = "", $method = 'euclidean', $offset = 0)
         }
 
         if ($method != 'euclidean') {
-            usort($final_journal, fn ($doc, $query) => $doc['similarity_score'] > $query['similarity_score']);
-        } else {
             usort($final_journal, fn ($doc, $query) => $doc['similarity_score'] < $query['similarity_score']);
+        } else {
+            usort($final_journal, fn ($doc, $query) => $doc['similarity_score'] > $query['similarity_score']);
         }
         return $final_journal;
     }
